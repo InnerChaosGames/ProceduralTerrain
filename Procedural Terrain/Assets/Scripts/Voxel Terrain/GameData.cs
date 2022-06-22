@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿		using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,10 +6,10 @@ public static class GameData
 {
 	public static int ChunkResolution = 1; // the amount of vertices per chunk block
 	public static float terrainSurface = 0.5f;
-	public static int ChunkWidth = 4;
-	public static int ChunkHeight = 250;
+	public static int ChunkWidth = 10;
+	public static int ChunkHeight = 50;
 
-	public static float BaseTerrainHeight = 60f; // Minimum height of terrain
+	public static float BaseTerrainHeight = 25f; // Minimum height of terrain
 	public static float TerrainHeightRange = 10f; // The max height (above BaseTerrainHeight) our terrain can be
 
 	public static float GetTerrainHeight(int x, int z)

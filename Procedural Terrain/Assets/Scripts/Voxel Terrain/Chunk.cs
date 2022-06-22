@@ -12,7 +12,7 @@ public class Chunk
 	MeshCollider meshCollider;
 	MeshRenderer meshRenderer;
 
-	Vector3Int chunkPosition;
+	public Vector3Int chunkPosition;
 
 	public List<Vector3> vertices = new List<Vector3>();
 	public List<int> vertexTextureIndex = new List<int>();
@@ -34,8 +34,11 @@ public class Chunk
 	public int height { get { return GameData.ChunkHeight * GameData.ChunkResolution; } }
 	float terrainSurface { get { return GameData.terrainSurface; } }
 
-	public Chunk(Vector3Int _position)
+	private WorldGenerator worldGenerator;
+
+	public Chunk(Vector3Int _position, WorldGenerator worldGenerator)
     {
+		this.worldGenerator = worldGenerator;
 		chunkObject = new GameObject();
 		chunkObject.name = string.Format("Chunk {0}, {1}", _position.x, _position.z);
 		chunkPosition = _position;
@@ -60,15 +63,16 @@ public class Chunk
 		float[,] heightMap = Noise.GenerateNoiseMap(width + 1, width + 1, 1, 50, 5, 0.5f, 2, Vector2.zero, Noise.NormalizeMode.Global);
 
 		for (int x = 0; x < width + 1; x++)
-        {
-			for (int y = 0; y < height + 1; y++)
-            {
-				for (int z = 0; z < width + 1; z++)
-                {
+		{
+			for (int z = 0; z < width + 1; z++)
+			{
+				int randomVoxel = Random.Range(0, World.Instance.terrainTextures.Length);
 
+				for (int y = 0; y < height + 1; y++)
+				{
 					float thisHeight = GameData.GetTerrainHeight(x + chunkPosition.x, z + chunkPosition.z);
 					//thisHeight = (float)height * heightMap[x, z];
-					
+
 					//Debug.Log(thisHeight);
 
 					float point = (float)y - thisHeight;
@@ -83,11 +87,49 @@ public class Chunk
 						maxValue = point;
 					if (point < minValue)
 						minValue = point;
-		
-					terrainMap[x, y, z] = new TerrainPoint(point, Random.Range(0, World.Instance.terrainTextures.Length));
-                }
-            }
-        }
+
+					Chunk edgeChunk = null;
+					int edgeVoxel = 0;
+					if (x == 0)
+					{
+						edgeChunk = worldGenerator.GetAdjacentChunk(this, new Vector2Int(-GameData.ChunkWidth, 0));
+						if (edgeChunk != null)
+							edgeVoxel = edgeChunk.terrainMap[width - 1, y, z].textureID;
+
+					}
+					else if (z == 0)
+					{
+						edgeChunk = worldGenerator.GetAdjacentChunk(this, new Vector2Int(0, -GameData.ChunkWidth));
+						if (edgeChunk != null)
+							edgeVoxel = edgeChunk.terrainMap[x, y, width - 1].textureID;
+					}
+					else if (x == width - 1)
+					{
+						edgeChunk = worldGenerator.GetAdjacentChunk(this, new Vector2Int(GameData.ChunkWidth, 0));
+						if (edgeChunk != null)
+							edgeVoxel = edgeChunk.terrainMap[0, y, z].textureID;
+					}
+					else if (z == width - 1)
+					{
+						edgeChunk = worldGenerator.GetAdjacentChunk(this, new Vector2Int(0, GameData.ChunkWidth));
+						if (edgeChunk != null)
+							edgeVoxel = edgeChunk.terrainMap[x, y, 0].textureID;
+					}
+
+					if (edgeChunk != null)
+					{
+						// get voxel on the edge of the chunk
+						terrainMap[x, y, z] = new TerrainPoint(point, edgeVoxel);
+
+					}
+					else
+					{
+						terrainMap[x, y, z] = new TerrainPoint(point, randomVoxel);
+					}
+				}
+			}
+		}
+        
     }
 
 	void CreateMeshData()

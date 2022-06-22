@@ -21,7 +21,7 @@ public class WorldGenerator : MonoBehaviour
             for (int z = 0; z < WorldSizeInChunks; z++)
             {
                 Vector3Int chunkPos = new Vector3Int(x * GameData.ChunkWidth, 0, z * GameData.ChunkWidth);
-                chunks.Add(chunkPos, new Chunk(chunkPos));
+                chunks.Add(chunkPos, new Chunk(chunkPos, this));
                 chunks[chunkPos].chunkObject.transform.SetParent(transform);
             }
         }
@@ -37,9 +37,19 @@ public class WorldGenerator : MonoBehaviour
 
     }
 
-    /*private void OnDrawGizmosSelected()
+    public Chunk GetAdjacentChunk(Chunk chunk, Vector2Int direction)
+    {
+        var chunkPosition = chunk.chunkPosition + new Vector3Int(direction.x, 0, direction.y);
+        if (chunks.ContainsKey(chunkPosition))
+            return chunks[chunkPosition];
+        else
+            return null;
+    }
+
+    private void OnDrawGizmosSelected()
     {
         Chunk chunk = chunks[Vector3Int.zero];
+        Chunk chunk2 = chunks[new Vector3Int(0, 0, GameData.ChunkWidth)];
 
         for (int i = 0; i < chunk.vertices.Count; i++)
         {
@@ -58,5 +68,17 @@ public class WorldGenerator : MonoBehaviour
                 }
             }
         }
-    }*/
+
+        for (int x = 0; x < chunk2.width; x++)
+        {
+            for (int y = 0; y < chunk2.height; y++)
+            {
+                for (int z = 0; z < chunk2.width; z++)
+                {
+                    Gizmos.color = TerrainPoint.colors[chunk2.terrainMap[x, y, z].textureID];
+                    Gizmos.DrawSphere(new Vector3(x , y, z + GameData.ChunkWidth), 0.1f);
+                }
+            }
+        }
+    }
 }
